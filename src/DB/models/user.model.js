@@ -13,6 +13,11 @@ export const Roles = {
   user: "user",
 };
 Object.freeze(Roles);
+export const Providers = {
+  system: "system",
+  google: "google",
+};
+Object.freeze(Providers);
 const uesrSchema = new Schema(
   {
     firstName: {
@@ -30,10 +35,17 @@ const uesrSchema = new Schema(
     },
     password: {
       type: "String",
-      required: true,
-      set(value){
-        return hash(value)
-      }
+      required: function () {
+        if (this.provider == Providers.google) {
+          return false;
+        }
+        if (this.provider == Providers.system) {
+          return true;
+        }
+      },
+      set(value) {
+        return hash(value);
+      },
     },
     age: {
       type: Number,
@@ -52,48 +64,65 @@ const uesrSchema = new Schema(
     },
     phone: {
       type: String,
-      required: true,
+      required: function () {
+        if (this.provider == Providers.google) {
+          return false;
+        }
+        if (this.provider == Providers.system) {
+          return true;
+        }
+      },
       set(value) {
-        return encryption(value);
+        if (value) {
+          return encryption(value);
+        }
+        return value
       },
       get(value) {
         return decryption(value);
       },
     },
-    confirmed:{
-      type:Boolean,
-      default:false
+    confirmed: {
+      type: Boolean,
+      default: false,
     },
-    email_otp:{
-      otp:String,
-      expiredAt:Date
+    email_otp: {
+      otp: String,
+      expiredAt: Date,
+      failedAttempts: { type: Number, default: 0 },
+      banned: Date,
     },
-    password_otp:{
-      otp:String,
-      expiredAt:Date
-    }
+    password_otp: {
+      otp: String,
+      expiredAt: Date,
+    },
+    changed_credentials: Date,
+    provider: {
+      type: String,
+      enum: Object.values(Providers),
+      default: Providers.system,
+    },
   },
   {
     timestamps: true,
-    toJSON:{
-        getters:true
+    toJSON: {
+      getters: true,
     },
-    toObject:{
-        getters:true
+    toObject: {
+      getters: true,
     },
-    virtuals:{
-        fullName:{
-            get(){
-                return this.firstName +" "+ this.lastName
-            }
-        }
+    virtuals: {
+      fullName: {
+        get() {
+          return this.firstName + " " + this.lastName;
+        },
+      },
     },
-    methods:{
-      checkPass(password){
-        return compare(password,this.password)
-      }
-      }
-    }
-  
+    methods: {
+      checkPass(password) {
+        return compare(password, this.password);
+      },
+    },
+  }
 );
 export const userModel = model("users", uesrSchema);

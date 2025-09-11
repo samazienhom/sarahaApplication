@@ -23,3 +23,18 @@ export class UserNotFound extends Error{
         super("user not found",{cause:400})
     }
 }
+export class NotConfirmedException extends Error{
+    constructor(){
+        super("user not confirmed",{cause:400})
+    }
+}
+export class LoginAgainException extends Error{
+    constructor(){
+        super("login again",{cause:400})
+    }
+}
+export class InvalidLoginMethodException extends Error{
+    constructor(){
+        super("invalid login method",{cause:400})
+    }
+}

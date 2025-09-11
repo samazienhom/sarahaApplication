@@ -5,11 +5,12 @@ import messageRouter from "./modules/message.module/message.controller.js"
 import userRouter from "./modules/user.module/user.controller.js"
 import { NotFoundURLException } from "./utilities/exceptions.js"
 import { sendEmail } from "./utilities/send.email/send.email.js"
-
+import cors from 'cors'
 const startApp=async(app,express)=>{
     const port=process.env.PORT
     app.use(express.json())
     await dbConnection()
+    app.use(cors())
     app.use("/user",userRouter)
     app.use("/message",messageRouter)
     app.use("/auth",authRouter)
