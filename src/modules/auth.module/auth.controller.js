@@ -14,4 +14,6 @@ authRouter.post("/resend-otp",authServises.resend_emailOtp)
 authRouter.post("/forget-pass",authServises.forgetPass)
 authRouter.post("/change-pass",authServises.changePass)
 authRouter.post("/add-pass",authServises.addPass)
+authRouter.patch("/update_email",auth(),authServises.updateEmail)
+authRouter.patch("/confirm-new-email",auth(),authServises.confirmNewEmail)
 export default authRouter

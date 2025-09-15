@@ -1,4 +1,4 @@
-import { get, model, Schema, set } from "mongoose";
+import { get, model, Schema, set, Types } from "mongoose";
 import { decryption, encryption } from "../../utilities/crypto.js";
 import { hash } from "../../utilities/bcrypt.js";
 import { compare } from "bcryptjs";
@@ -18,6 +18,15 @@ export const Providers = {
   google: "google",
 };
 Object.freeze(Providers);
+
+const otpSchema=new Schema(
+  {
+    otp:"String",
+    expiredAt:Date
+  },{
+    _id:false
+  }
+)
 const uesrSchema = new Schema(
   {
     firstName: {
@@ -87,11 +96,14 @@ const uesrSchema = new Schema(
       default: false,
     },
     email_otp: {
-      otp: String,
-      expiredAt: Date,
+       otp:"String",
+    expiredAt:Date,
       failedAttempts: { type: Number, default: 0 },
       banned: Date,
     },
+    new_email_otp:otpSchema,
+    old_email_otp:otpSchema,
+    newEmail:String,
     password_otp: {
       otp: String,
       expiredAt: Date,
@@ -102,6 +114,17 @@ const uesrSchema = new Schema(
       enum: Object.values(Providers),
       default: Providers.system,
     },
+    isDeleted:{
+      type:Boolean,
+      default:false
+    },
+    deletedBy:{
+      type:Types.ObjectId,
+      ref:"users"
+    },
+    profileImage:{
+      type:String,
+    }
   },
   {
     timestamps: true,

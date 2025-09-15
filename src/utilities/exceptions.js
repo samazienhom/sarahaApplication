@@ -38,3 +38,8 @@ export class InvalidLoginMethodException extends Error{
         super("invalid login method",{cause:400})
     }
 }
+export class unAuthorizedException extends Error{
+    constructor(){
+        super("unAuthorized",{cause:401})
+    }
+}

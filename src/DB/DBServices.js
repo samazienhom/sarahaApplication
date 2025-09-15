@@ -4,6 +4,11 @@ export const findOne=async({model,filter})=>{
     const doc =await model.findOne(filter)
     return doc
 }
+export const findByEmail=async(email)=>{
+    const doc =await userModel.findOne(email)
+    return doc
+}
+
 export const findById=async({model,id})=>{
     const doc =await model.findById(id)
     return doc

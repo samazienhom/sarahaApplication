@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { customAlphabet } from "nanoid";
 import { userModel } from '../../DB/models/user.model.js';
 import { findOne } from '../../DB/DBServices.js';
 export const sendEmail=async({to,subject,html})=>{
@@ -29,4 +30,9 @@ export const sendEmail=async({to,subject,html})=>{
     main().catch((err)=>{
         console.log({EmailError:err});
     })
+}
+export const createOtp=()=>{
+    const custom = customAlphabet("0123456789");
+  const otp = custom(6);
+  return otp
 }

@@ -1,4 +1,4 @@
-import { findById, findOne } from "../../DB/DBServices.js";
+import { create, findByEmail, findById, findOne } from "../../DB/DBServices.js";
 import { Providers, userModel } from "../../DB/models/user.model.js";
 import { decodeToken, tokenTypes } from "../../middleware/auth.middleware.js";
 import {
@@ -12,7 +12,7 @@ import { successHandler } from "../../utilities/success.handler.js";
 import jwt from "jsonwebtoken";
 import { otp_tamplate } from "../../utilities/send.email/otp.tamplate.js";
 import { customAlphabet } from "nanoid";
-import { sendEmail } from "../../utilities/send.email/send.email.js";
+import { createOtp, sendEmail } from "../../utilities/send.email/send.email.js";
 import { compare, hash } from "../../utilities/bcrypt.js";
 import { OAuth2Client } from "google-auth-library";
 import Joi from "joi";
@@ -30,8 +30,7 @@ export const signup = async (req, res, next) => {
   if (isExist) {
     return next(new NotValidEmail());
   }
-  const custom = customAlphabet("0123456789");
-  const otp = custom(6);
+  const otp=createOtp()
   const subject = "Email confirmation";
   const html = otp_tamplate(otp, firstName, subject);
 
@@ -313,3 +312,50 @@ export const addPass = async (req, res, next) => {
   });
   successHandler({ res });
 };
+export const updateEmail=async(req,res,next)=>{
+  const user=req.user
+  const {email}=req.body
+  if(user.email==email){
+    return next(new Error("update your email with new one",{cause:400}))
+  }
+  const isExist=await findByEmail({email})
+  if(isExist){
+    return next(new Error(NotValidEmail))
+  }
+  const oldEmailOtp=createOtp()
+  const oldEmailHtml=otp_tamplate(oldEmailOtp,user.firstName,"confirm email update")
+  await sendEmail({to:user.email,subject:"confirm update email",html:oldEmailHtml})
+  user.old_email_otp={
+    otp:hash(oldEmailOtp),
+    expiredAt:Date.now()+5 *60*60*1000
+  }
+  const newEmailOtp=createOtp()
+  const newEmailHtml=otp_tamplate(newEmailOtp,user.firstName,"confirm new email")
+  await sendEmail({to:email,subject:"confirm new email",html:newEmailHtml})
+  user.new_email_otp={
+    otp:hash(newEmailOtp),
+    expiredAt:Date.now()+5 *60*60*1000
+  }
+  user.newEmail=email
+  await user.save()
+  successHandler({res})
+};
+export const confirmNewEmail=async(req,res,next)=>{
+  const user=req.user
+  const {oldEmailOtp,newEmailOtp}=req.body
+   if (user.old_email_otp.expiredAt <= Date.now()||user.new_email_otp.expiredAt <= Date.now()) {
+    return next(new Error("expired otp", { cause: 404 }));
+  }
+  if (!compare(oldEmailOtp, user.old_email_otp.otp)||!compare(newEmailOtp, user.new_email_otp.otp)) {
+    return next(new Error("Invalid otp", { cause: 404 }));
+  }
+  const newEmail=user.newEmail
+  user.email=newEmail
+  user.newEmail=undefined
+  user.old_email_otp=undefined
+  user.new_email_otp=undefined
+  await user.save()
+
+
+  successHandler({res})
+}

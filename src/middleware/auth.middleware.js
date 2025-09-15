@@ -1,6 +1,6 @@
-import { findById } from "../DB/DBServices.js";
+import { findById, findOne } from "../DB/DBServices.js";
 import { userModel } from "../DB/models/user.model.js";
-import { InvalidTokeExceotion, LoginAgainException, NotConfirmedException, UserNotFound } from "../utilities/exceptions.js";
+import { InvalidTokeExceotion, LoginAgainException, NotConfirmedException, unAuthorizedException, UserNotFound } from "../utilities/exceptions.js";
 
 import jwt from "jsonwebtoken";
 export const tokenTypes={
@@ -22,7 +22,13 @@ export const decodeToken = async ({authorization, type=tokenTypes.access,next}) 
   }
   const data = jwt.verify(token,signature );
   console.log(data);
-  const user = await findById({ model: userModel, id: data._id });
+  const user = await findOne({
+    model:userModel,
+    filter:{
+      _id:data._id,
+      isDeleted:false
+    }
+  });
   if(!user){
     return next(new UserNotFound())
   }
@@ -42,3 +48,12 @@ export const auth = () => {
     next();
   };
 };
+export const allowTo=(...Roles)=>{
+   return async (req, res, next) => {
+    const user=req.user
+    if(!Roles.includes(user.role)){
+      return next (new Error(unAuthorizedException))
+    }
+    next();
+  };
+}
