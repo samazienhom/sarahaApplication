@@ -1,5 +1,6 @@
 import Joi from "joi";
 import mongoose from "mongoose";
+import { fileTypes } from "./multer/multer.js";
 import { Gender, Roles } from "../DB/models/user.model.js";
 const checkId=(value,helpers)=>{
        if(mongoose.isValidObjectId(value)){
@@ -19,5 +20,13 @@ export const generalValidation = {
   role: Joi.string().valid(Roles.admin, Roles.user),
   phone: Joi.string().regex(/^(0|0020|\+20)(1)[1250]\d{8}/),
   otp:Joi.string().length(6),
-  id:Joi.string().custom(checkId)
+  id:Joi.string().custom(checkId),
+   fieldname: Joi.string().valid('profileImage'),
+    originalname:Joi.string(),
+    encoding: Joi.string(),
+    mimetype: Joi.string().valid(...fileTypes.image),
+    destination:Joi.string(),
+    filename:Joi.string(),
+    path:Joi.string(),
+    size: Joi.number().max(10 * 1024 *1024)
 };

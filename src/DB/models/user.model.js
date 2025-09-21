@@ -123,8 +123,13 @@ const uesrSchema = new Schema(
       ref:"users"
     },
     profileImage:{
-      type:String,
-    }
+      secure_url:String,
+      public_id:String
+    },
+    coverImages:[{
+    secure_url:String,
+    public_id:String
+  }]
   },
   {
     timestamps: true,

@@ -5,9 +5,9 @@ export const validation=(schema)=>{
         const data={
             ...req.body,
             ...req.params,
-            ...req.query
+            ...req.query,
+            ...req.file
         }
-
         const resualt=schema.validate(data,{abortEarly:false})
         console.log({resualt});
         if(resualt.error){
